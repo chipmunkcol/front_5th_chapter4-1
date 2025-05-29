@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+실습을 진행한 저장소의 README 파일에 본인이 구축한 배포 파이프라인을 설명하는 다이어그램과 설명을 적습니다. 아래는 예시입니다.
 
-## Getting Started
+<div style="display: flex; justify-content: center;">
+    <img src="./public/architecture.png" width="400"/>
+</div>
 
-First, run the development server:
+### 전체 flow 설명
+1. next.js 프로젝트를 build 합니다.
+2. build된 정적 파일들을 s3에 업로드 합니다.
+3. s3의 엔드포인트로 cloudfront를 연결해 정적 파일을 제공합니다.
+    - 유저는 최초에 도메인으로 접근하면 원본 s3에서 정적파일에서 콘텐츠를 가져갑니다.
+    - cloudfront로 유저와 가까운 엣지 로케이션에 콘텐츠가 일정 시간 캐싱됩니다.
+    - 캐싱된 시간동안 유저가 도메인으로 접근하면 cloudfront가 정적 파일을 엣지 로켄이션에서 제공하기 때문에 유저는 보다 빠른 응답을 받을 수 있습니다.
+    - 캐싱시간 후에 유저가 도메인으로 접근하면 다시 콘텐츠를 s3에 있는 원본에서 가져갑니다.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+        <img src="./public/cloudfront.png" width="500">
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. IAM 설정
+    - IAM을 통해 AWS 리소스에 대한 엑세스를 안전하게 제어합니다.
+    - github action 등을 통해 aws 인프라를 사용하려면 (이번 프로젝트의 경우 s3와 cloudfront) 원하는 인프라에 엑세스 할 수 있는 권한을 IAM으로 설정해줘야합니다.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+5. 위 1~3 과정을 github action을 통해 자동화 시킵니다.
+    - main 브랜치 push를 트리거로 자동배포를 진행합니다.
+    - 해당 Git 레포지토리의 의존성을 설치합니다.
+    - 프로젝트를 build합니다
+    - AWS 인증을 진행합니다. (필요 value: access key, scret access key, region)
+    - build한파일을 aws s3에 배포합니다.
+    - cloudfront의 기존 캐시를 무효화합니다. (무효화를 진행해주지 않으면 24시간 이후에 업데이트가 반영됩니다.)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
