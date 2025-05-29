@@ -1,4 +1,7 @@
-실습을 진행한 저장소의 README 파일에 본인이 구축한 배포 파이프라인을 설명하는 다이어그램과 설명을 적습니다. 아래는 예시입니다.
+## 주요 링크
+
+- S3 버킷 웹사이트 엔드포인트: http://hanghea-plus.s3-website.ap-northeast-2.amazonaws.com/
+- CloudFrount 배포 도메인 이름: https://d25u1ylqwjv1yz.cloudfront.net
 
 <div style="display: flex; justify-content: center;">
     <img src="./public/architecture.png" width="400"/>
